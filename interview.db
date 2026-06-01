@@ -1,0 +1,8 @@
+CREATE TABLE interviews(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+role TEXT,
+question TEXT,
+answer TEXT,
+score INTEGER,
+feedback TEXT
+);
