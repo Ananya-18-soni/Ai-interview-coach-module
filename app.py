@@ -20,38 +20,73 @@ if not os.path.isdir(REPORT_FOLDER):
 
 # ---------------- DATABASE ---------------- #
 
+
+DB_NAME = "interview.db"
+
 def get_db():
-    conn = sqlite3.connect("interview.db")
+    conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        email TEXT UNIQUE,
-        password TEXT
-    )
-    """)
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+        )
+        """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS interviews(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        role TEXT,
-        question TEXT,
-        answer TEXT,
-        feedback TEXT
-    )
-    """)
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS interviews(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            role TEXT,
+            question TEXT,
+            answer TEXT,
+            feedback TEXT
+        )
+        """)
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+
+    except sqlite3.DatabaseError:
+        # Delete corrupted DB and recreate
+        if os.path.exists(DB_NAME):
+            os.remove(DB_NAME)
+
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+
+        cur.execute("""
+        CREATE TABLE users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+        )
+        """)
+
+        cur.execute("""
+        CREATE TABLE interviews(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            role TEXT,
+            question TEXT,
+            answer TEXT,
+            feedback TEXT
+        )
+        """)
+
+        conn.commit()
+        conn.close()
 
 
 init_db()
