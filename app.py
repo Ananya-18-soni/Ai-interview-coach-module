@@ -12,13 +12,11 @@ app.secret_key = "interviewcoach123"
 UPLOAD_FOLDER = "static/uploads"
 REPORT_FOLDER = "reports"
 
-# Create folders only if they don't already exist
-if not os.path.exists(UPLOAD_FOLDER):
+if not os.path.isdir(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-if not os.path.exists(REPORT_FOLDER):
+if not os.path.isdir(REPORT_FOLDER):
     os.makedirs(REPORT_FOLDER)
-
 
 # ---------------- DATABASE ---------------- #
 
