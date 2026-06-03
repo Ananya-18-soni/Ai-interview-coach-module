@@ -7,97 +7,60 @@ from utils.resume_parser import extract_resume_text
 from utils.pdf_report import generate_report
 
 app = Flask(__name__)
-app.secret_key = "interviewcoach123"
+app.secret_key = "interviewcoach"
 
 UPLOAD_FOLDER = "static/uploads"
 REPORT_FOLDER = "reports"
 
-if not os.path.isdir(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-if not os.path.isdir(REPORT_FOLDER):
-    os.makedirs(REPORT_FOLDER)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(REPORT_FOLDER, exist_ok=True)
 
 # ---------------- DATABASE ---------------- #
 
-
-DB_NAME = "interview.db"
-
 def get_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect("interview.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
+    conn = get_db()
+    cur = conn.cursor()
 
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT
-        )
-        """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT UNIQUE,
+        password TEXT
+    )
+    """)
 
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS interviews(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            role TEXT,
-            question TEXT,
-            answer TEXT,
-            feedback TEXT
-        )
-        """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS interviews(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        role TEXT,
+        question TEXT,
+        answer TEXT,
+        feedback TEXT
+    )
+    """)
 
-        conn.commit()
-        conn.close()
-
-    except sqlite3.DatabaseError:
-        # Delete corrupted DB and recreate
-        if os.path.exists(DB_NAME):
-            os.remove(DB_NAME)
-
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
-
-        cur.execute("""
-        CREATE TABLE users(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT
-        )
-        """)
-
-        cur.execute("""
-        CREATE TABLE interviews(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            role TEXT,
-            question TEXT,
-            answer TEXT,
-            feedback TEXT
-        )
-        """)
-
-        conn.commit()
-        conn.close()
+    conn.commit()
+    conn.close()
 
 
 init_db()
 
-
-# ---------------- AUTH ---------------- #
+# ---------------- HOME ---------------- #
 
 @app.route("/")
 def home():
     return render_template("login.html")
 
+
+# ---------------- REGISTER ---------------- #
 
 @app.route("/register")
 def register():
@@ -129,6 +92,8 @@ def register_user():
     return redirect("/")
 
 
+# ---------------- LOGIN ---------------- #
+
 @app.route("/login", methods=["POST"])
 def login():
 
@@ -150,7 +115,6 @@ def login():
     if user:
         session["user_id"] = user["id"]
         session["name"] = user["name"]
-
         return redirect("/dashboard")
 
     flash("Invalid Login")
@@ -171,21 +135,8 @@ def dashboard():
     if "user_id" not in session:
         return redirect("/")
 
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT * FROM interviews WHERE user_id=?",
-        (session["user_id"],)
-    )
-
-    interviews = cur.fetchall()
-
-    conn.close()
-
     return render_template(
         "dashboard.html",
-        interviews=interviews,
         name=session["name"]
     )
 
@@ -229,26 +180,7 @@ def evaluate():
         answer
     )
 
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-    INSERT INTO interviews
-    (user_id, role, question, answer, feedback)
-    VALUES (?,?,?,?,?)
-    """, (
-        session["user_id"],
-        role,
-        question,
-        answer,
-        feedback
-    ))
-
-    conn.commit()
-    conn.close()
-
-    session["last_role"] = role
-    session["last_feedback"] = feedback
+    session["feedback"] = feedback
 
     return render_template(
         "result.html",
@@ -256,21 +188,21 @@ def evaluate():
     )
 
 
-# ---------------- RESUME UPLOAD ---------------- #
+# ---------------- RESUME ---------------- #
 
 @app.route("/upload_resume", methods=["POST"])
 def upload_resume():
 
     resume = request.files["resume"]
 
-    filepath = os.path.join(
+    path = os.path.join(
         UPLOAD_FOLDER,
         resume.filename
     )
 
-    resume.save(filepath)
+    resume.save(path)
 
-    resume_text = extract_resume_text(filepath)
+    resume_text = extract_resume_text(path)
 
     return render_template(
         "resume_result.html",
@@ -278,22 +210,19 @@ def upload_resume():
     )
 
 
-# ---------------- PDF REPORT ---------------- #
+# ---------------- PDF ---------------- #
 
 @app.route("/download_report")
 def download_report():
 
-    role = session.get("last_role", "Interview")
-    feedback = session.get("last_feedback", "No Feedback")
-
     filepath = os.path.join(
         REPORT_FOLDER,
-        "interview_report.pdf"
+        "report.pdf"
     )
 
     generate_report(
-        role,
-        feedback,
+        "Interview Report",
+        session.get("feedback", ""),
         filepath
     )
 
