@@ -1,111 +1,56 @@
 import os
 import google.generativeai as genai
 
-# Get API key from Railway Environment Variables
 API_KEY = os.getenv("GEMINI_API_KEY")
-
-if not API_KEY:
-    raise ValueError(
-        "GEMINI_API_KEY not found. Add it in Railway Variables."
-    )
 
 genai.configure(api_key=API_KEY)
 
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel(
+    "gemini-1.5-flash"
+)
 
 
 def generate_questions(role, level):
-    """
-    Generate interview questions based on role and level.
-    """
 
     prompt = f"""
-    You are a professional interviewer.
-
-    Generate exactly 5 interview questions.
+    Generate 5 interview questions.
 
     Role: {role}
-    Difficulty Level: {level}
+    Level: {level}
 
-    Format:
-    1.
-    2.
-    3.
-    4.
-    5.
-
-    Return only the questions.
+    Return only questions.
     """
 
-    try:
-        response = model.generate_content(prompt)
-        return response.text
+    response = model.generate_content(prompt)
 
-    except Exception as e:
-        return f"Error generating questions: {str(e)}"
+    return response.text
 
 
 def evaluate_answer(role, question, answer):
-    """
-    Evaluate candidate answer.
-    """
 
     prompt = f"""
-    You are an expert interviewer.
+    Evaluate this answer.
 
     Role:
     {role}
 
-    Interview Question:
+    Question:
     {question}
 
-    Candidate Answer:
+    Answer:
     {answer}
 
-    Evaluate the answer and provide:
+    Give:
 
-    Score: X/10
+    Score /10
 
-    Strengths:
-    - Point 1
-    - Point 2
+    Strengths
 
-    Weaknesses:
-    - Point 1
-    - Point 2
+    Weaknesses
 
-    Suggestions:
-    - Point 1
-    - Point 2
+    Suggestions
     """
 
-    try:
-        response = model.generate_content(prompt)
-        return response.text
+    response = model.generate_content(prompt)
 
-    except Exception as e:
-        return f"Error evaluating answer: {str(e)}"
-
-
-def generate_resume_questions(resume_text):
-    """
-    Generate interview questions from resume.
-    """
-
-    prompt = f"""
-    Analyze this resume and generate:
-
-    5 Technical Questions
-    3 HR Questions
-    2 Project-Based Questions
-
-    Resume Content:
-    {resume_text}
-    """
-
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-
-    except Exception as e:
-        return f"Error processing resume: {str(e)}"
+    return response.text
