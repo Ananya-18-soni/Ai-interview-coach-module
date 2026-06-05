@@ -1,89 +1,51 @@
 import os
 import google.generativeai as genai
 
-API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-model = None
-
-if API_KEY:
-    try:
-        genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        print("Gemini initialized successfully")
-    except Exception as e:
-        print(f"Gemini initialization failed: {e}")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-1.5-flash")
 else:
-    print("GEMINI_API_KEY not found")
+    model = None
 
 
 def generate_questions(role, level):
 
-    if model is None:
-        return """
-1. Tell me about yourself.
-2. What are your strengths?
-3. What are your weaknesses?
-4. Why should we hire you?
-5. Where do you see yourself in 5 years?
-"""
+    if not model:
+        return [
+            "Tell me about yourself.",
+            "What are your strengths?",
+            "Why should we hire you?"
+        ]
 
-    try:
-        prompt = f"""
-Generate 5 interview questions.
+    prompt = f"""
+    Generate 5 interview questions for a {level} {role}.
+    Return only questions.
+    """
 
-Role: {role}
-Level: {level}
+    response = model.generate_content(prompt)
 
-Return only questions.
-"""
-
-        response = model.generate_content(prompt)
-        return response.text
-
-    except Exception as e:
-        print(f"Question Generation Error: {e}")
-        return "Unable to generate questions."
+    return response.text.split("\n")
 
 
 def evaluate_answer(role, question, answer):
 
-    if model is None:
-        return """
-Score: 7/10
+    if not model:
+        return "AI evaluation unavailable."
 
-Strengths:
-- Good attempt
+    prompt = f"""
+    Role: {role}
 
-Weaknesses:
-- Needs more detail
+    Question:
+    {question}
 
-Suggestions:
-- Add practical examples
-"""
+    Answer:
+    {answer}
 
-    try:
-        prompt = f"""
-Evaluate this answer.
+    Evaluate the answer and give feedback.
+    """
 
-Role:
-{role}
+    response = model.generate_content(prompt)
 
-Question:
-{question}
-
-Answer:
-{answer}
-
-Give:
-Score /10
-Strengths
-Weaknesses
-Suggestions
-"""
-
-        response = model.generate_content(prompt)
-        return response.text
-
-    except Exception as e:
-        print(f"Evaluation Error: {e}")
-        return f"Evaluation failed: {str(e)}"
+    return response.text
