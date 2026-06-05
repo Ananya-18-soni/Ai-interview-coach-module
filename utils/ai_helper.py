@@ -1,23 +1,19 @@
 import os
 import google.generativeai as genai
 
-# ---------------- GEMINI CONFIG ----------------
-
 API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not API_KEY:
-print("ERROR: GEMINI_API_KEY not found")
 model = None
-else:
+
+if API_KEY:
 try:
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 print("Gemini initialized successfully")
 except Exception as e:
 print(f"Gemini initialization failed: {e}")
-model = None
-
-# ---------------- GENERATE QUESTIONS ----------------
+else:
+print("GEMINI_API_KEY not found")
 
 def generate_questions(role, level):
 
@@ -45,14 +41,10 @@ Return only questions.
 
 ```
     response = model.generate_content(prompt)
-
-    if hasattr(response, "text"):
-        return response.text
-
-    return "Unable to generate questions."
+    return response.text
 
 except Exception as e:
-    print("Question Generation Error:", e)
+    print(f"Question Generation Error: {e}")
 
     return """
 ```
@@ -63,8 +55,6 @@ except Exception as e:
 4. Describe a challenge you faced.
 5. Why should we hire you?
    """
-
-# ---------------- EVALUATE ANSWERS ----------------
 
 def evaluate_answer(role, question, answer):
 
@@ -77,8 +67,7 @@ Score: 7/10
 
 Strengths:
 
-* Answer provided
-* Relevant information included
+* Good attempt
 
 Weaknesses:
 
@@ -87,7 +76,6 @@ Weaknesses:
 Suggestions:
 
 * Add practical examples
-* Improve explanation
   """
 
   try:
@@ -106,32 +94,23 @@ Answer:
 Give:
 
 Score /10
-
 Strengths
-
 Weaknesses
-
 Suggestions
 """
 
 ```
     response = model.generate_content(prompt)
-
-    if hasattr(response, "text"):
-        return response.text
-
-    return "Unable to evaluate answer."
+    return response.text
 
 except Exception as e:
-    print("Evaluation Error:", e)
+    print(f"Evaluation Error: {e}")
 
     return f"""
 ```
 
-Score: 6/10
+Evaluation failed.
 
-Error occurred while evaluating:
+Error:
 {str(e)}
-
-Please try again.
 """
