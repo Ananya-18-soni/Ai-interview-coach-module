@@ -5,12 +5,13 @@ import os
 import traceback
 
 
+
 try:
-from utils.ai_helper import generate_questions, evaluate_answer
-print("ai_helper loaded successfully")
-except Exception:
-print(traceback.format_exc())
-raise
+    from utils.ai_helper import generate_questions, evaluate_answer
+    print("ai_helper loaded")
+except Exception as e:
+    print(traceback.format_exc())
+    raise
 
 
 try:
