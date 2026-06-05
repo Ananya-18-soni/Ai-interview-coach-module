@@ -3,6 +3,11 @@ import google.generativeai as genai
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 
+if not API_KEY:
+    raise Exception(
+        "GEMINI_API_KEY environment variable not found"
+    )
+
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel(
