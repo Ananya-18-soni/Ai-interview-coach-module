@@ -9,7 +9,7 @@ from utils.pdf_report import generate_report
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "interviewcoach")
 
-BASE_DIR = os.path.dirname(os.path.abspath(**file**))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 REPORT_FOLDER = os.path.join(BASE_DIR, "reports")
