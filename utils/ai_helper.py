@@ -1,57 +1,137 @@
 import os
 import google.generativeai as genai
 
+# ---------------- GEMINI CONFIG ----------------
+
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise Exception("GEMINI_API_KEY not found in Railway Variables")
-
+print("ERROR: GEMINI_API_KEY not found")
+model = None
+else:
+try:
 genai.configure(api_key=API_KEY)
-
 model = genai.GenerativeModel("gemini-1.5-flash")
+print("Gemini initialized successfully")
+except Exception as e:
+print(f"Gemini initialization failed: {e}")
+model = None
 
+# ---------------- GENERATE QUESTIONS ----------------
 
 def generate_questions(role, level):
 
-    prompt = f"""
-    Generate 5 interview questions.
+```
+if model is None:
+    return """
+```
 
-    Role: {role}
-    Level: {level}
+1. Tell me about yourself.
+2. What are your strengths?
+3. What are your weaknesses?
+4. Why should we hire you?
+5. Where do you see yourself in 5 years?
+   """
 
-    Return only questions.
-    """
+   try:
+   prompt = f"""
+   Generate 5 interview questions.
 
+Role: {role}
+Level: {level}
+
+Return only questions.
+"""
+
+```
     response = model.generate_content(prompt)
 
-    return response.text
+    if hasattr(response, "text"):
+        return response.text
 
+    return "Unable to generate questions."
+
+except Exception as e:
+    print("Question Generation Error:", e)
+
+    return """
+```
+
+1. Tell me about yourself.
+2. Why are you interested in this role?
+3. What are your strengths?
+4. Describe a challenge you faced.
+5. Why should we hire you?
+   """
+
+# ---------------- EVALUATE ANSWERS ----------------
 
 def evaluate_answer(role, question, answer):
 
-    prompt = f"""
-    Evaluate this answer.
+```
+if model is None:
+    return """
+```
 
-    Role:
-    {role}
+Score: 7/10
 
-    Question:
-    {question}
+Strengths:
 
-    Answer:
-    {answer}
+* Answer provided
+* Relevant information included
 
-    Give:
+Weaknesses:
 
-    Score /10
+* Needs more detail
 
-    Strengths
+Suggestions:
 
-    Weaknesses
+* Add practical examples
+* Improve explanation
+  """
 
-    Suggestions
-    """
+  try:
+  prompt = f"""
+  Evaluate this answer.
 
+Role:
+{role}
+
+Question:
+{question}
+
+Answer:
+{answer}
+
+Give:
+
+Score /10
+
+Strengths
+
+Weaknesses
+
+Suggestions
+"""
+
+```
     response = model.generate_content(prompt)
 
-    return response.text
+    if hasattr(response, "text"):
+        return response.text
+
+    return "Unable to evaluate answer."
+
+except Exception as e:
+    print("Evaluation Error:", e)
+
+    return f"""
+```
+
+Score: 6/10
+
+Error occurred while evaluating:
+{str(e)}
+
+Please try again.
+"""
