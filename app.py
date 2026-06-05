@@ -2,15 +2,24 @@ from flask import Flask, render_template, request, redirect, session, flash, sen
 import sqlite3
 import os
 
-from utils.ai_helper import generate_questions, evaluate_answer
-from utils.resume_parser import extract_resume_text
-from utils.pdf_report import generate_report
+try:
+    from utils.ai_helper import generate_questions, evaluate_answer
+    from utils.resume_parser import extract_resume_text
+    from utils.pdf_report import generate_report
+except Exception as e:
+    print("IMPORT ERROR:", str(e))
+    raise
 
 app = Flask(__name__)
-app.secret_key = "interviewcoach"
+app.secret_key = os.environ.get("SECRET_KEY", "interviewcoach")
 
-UPLOAD_FOLDER = "static/uploads"
-REPORT_FOLDER = "reports"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+REPORT_FOLDER = os.path.join(BASE_DIR, "reports")
+
+# Railway-friendly SQLite location
+DB_PATH = os.path.join("/tmp", "interview.db")
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORT_FOLDER, exist_ok=True)
@@ -18,7 +27,7 @@ os.makedirs(REPORT_FOLDER, exist_ok=True)
 # ---------------- DATABASE ---------------- #
 
 def get_db():
-    conn = sqlite3.connect("interview.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -57,7 +66,10 @@ init_db()
 
 @app.route("/")
 def home():
-    return render_template("login.html")
+    try:
+        return render_template("login.html")
+    except Exception as e:
+        return f"Error loading template: {str(e)}", 500
 
 
 # ---------------- REGISTER ---------------- #
@@ -233,4 +245,10 @@ def download_report():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
