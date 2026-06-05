@@ -1,33 +1,10 @@
 from flask import Flask, render_template, request, redirect, session, flash, send_file
 import sqlite3
 import os
-import traceback
 
-# Debug imports
-
-try:
 from utils.ai_helper import generate_questions, evaluate_answer
-print("✓ ai_helper loaded")
-except Exception:
-print("AI HELPER ERROR:")
-print(traceback.format_exc())
-raise
-
-try:
 from utils.resume_parser import extract_resume_text
-print("✓ resume_parser loaded")
-except Exception:
-print("RESUME PARSER ERROR:")
-print(traceback.format_exc())
-raise
-
-try:
 from utils.pdf_report import generate_report
-print("✓ pdf_report loaded")
-except Exception:
-print("PDF REPORT ERROR:")
-print(traceback.format_exc())
-raise
 
 app = Flask(**name**)
 app.secret_key = os.environ.get("SECRET_KEY", "interviewcoach")
@@ -37,18 +14,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(**file**))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 REPORT_FOLDER = os.path.join(BASE_DIR, "reports")
 
-DB_PATH = os.path.join("/tmp", "interview.db")
+DB_PATH = "/tmp/interview.db"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORT_FOLDER, exist_ok=True)
 
-
-# ---------------- DATABASE ---------------- #
+# ---------------- DATABASE ----------------
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+conn = sqlite3.connect(DB_PATH)
+conn.row_factory = sqlite3.Row
+return conn
+
 
 
 def init_db():
