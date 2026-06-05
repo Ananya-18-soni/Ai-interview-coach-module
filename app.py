@@ -2,12 +2,30 @@ from flask import Flask, render_template, request, redirect, session, flash, sen
 import sqlite3
 import os
 
+import traceback
+
 try:
     from utils.ai_helper import generate_questions, evaluate_answer
-    from utils.resume_parser import extract_resume_text
-    from utils.pdf_report import generate_report
+    print("✓ ai_helper loaded")
 except Exception as e:
-    print("IMPORT ERROR:", str(e))
+    print("AI HELPER ERROR:")
+    print(traceback.format_exc())
+    raise
+
+try:
+    from utils.resume_parser import extract_resume_text
+    print("✓ resume_parser loaded")
+except Exception as e:
+    print("RESUME PARSER ERROR:")
+    print(traceback.format_exc())
+    raise
+
+try:
+    from utils.pdf_report import generate_report
+    print("✓ pdf_report loaded")
+except Exception as e:
+    print("PDF REPORT ERROR:")
+    print(traceback.format_exc())
     raise
 
 app = Flask(__name__)
