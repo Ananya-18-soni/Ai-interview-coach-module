@@ -6,7 +6,7 @@ from utils.ai_helper import generate_questions, evaluate_answer
 from utils.resume_parser import extract_resume_text
 from utils.pdf_report import generate_report
 
-app = Flask(**name**)
+app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "interviewcoach")
 
 BASE_DIR = os.path.dirname(os.path.abspath(**file**))
