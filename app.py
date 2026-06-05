@@ -19,12 +19,12 @@ DB_PATH = "/tmp/interview.db"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORT_FOLDER, exist_ok=True)
 
-# ---------------- DATABASE ----------------
+# ---------------- DATABASE ---------------- #
 
 def get_db():
-conn = sqlite3.connect(DB_PATH)
-conn.row_factory = sqlite3.Row
-return conn
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 
